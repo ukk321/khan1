@@ -34,7 +34,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build  # Run this job only after 'build' job succeeds
+    needs: build  # Run this job only after 'build' job succeeds because i have
 
     steps:
       # Step 1: Checkout the code
