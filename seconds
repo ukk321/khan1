@@ -1,0 +1,30 @@
+import groovy.xml.MarkupBuilder
+
+// Create a StringWriter to capture the output
+def writer = new StringWriter()
+def html = new MarkupBuilder(writer)
+
+html.html {
+    head {
+        title("My Simple Webpage")
+    }
+    body {
+        h1("Welcome to My Webpage!")
+        p("Create Simple Page.")
+        
+        h2("About Me")
+        p("My name is Umar, and I love coding and coffee!")
+        
+        h2("My Hobbies")
+        ul {
+            li("Programming")
+            li("Reading")
+            li("Traveling")
+        }
+        
+        h2("Contact Me")
+    }
+}
+
+// Print the generated HTML
+println writer.toString()
