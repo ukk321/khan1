@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next-Level Web Design</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background: #121212;
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+            transition: background 0.5s ease-in-out;
+        }
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: #00ffcc;
+            text-shadow: 0px 0px 10px rgba(0, 255, 204, 0.8);
+            animation: fadeIn 1.5s ease-in-out;
+        }
+        p {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: slideUp 1.5s ease-in-out forwards;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.5);
+            transition: transform 0.3s;
+        }
+        .container:hover {
+            transform: scale(1.03);
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #121212;
+            background: #00ffcc;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        .btn:hover {
+            background: #00cc99;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.8);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            transition: 0.3s;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        .card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+        footer {
+            margin-top: 25px;
+            font-size: 1rem;
+            opacity: 0;
+            animation: fadeIn 3s ease-in-out forwards;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to My Next-Level Webpage! 🚀</h1>
+        <p>Elevate your web experience with a sleek, modern dark theme and interactive elements.</p>
+        <a href="https://www.github.com/ukk321" class="btn" target="_blank">Visit My GitHub</a>
+
+        <div class="card">
+            <h2>💡 Features</h2>
+            <p>✔ Smooth animations and hover effects</p>
+            <p>✔ Glowing elements for a futuristic look</p>
+            <p>✔ Dark mode design with vibrant highlights</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Umar's Next-Level Webpage. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>
+
