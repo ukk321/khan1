@@ -18,6 +18,11 @@ jobs:
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
 
+      # Step to adjust permissions on EC2 before deploying
+      - name: Fix Remote Directory Permissions
+        run: |
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "sudo chown -R ${{ secrets.EC2_USER }}:${{ secrets.EC2_USER }} /var/www/html/ && sudo chmod -R 775 /var/www/html/"
+
       - name: Deploy Website to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i private_key.pem -r * ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/html/
