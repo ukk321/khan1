@@ -23,8 +23,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Terraform Init
+      - name: Cache Terraform
+        id: cache-terraform
+        uses: actions/cache@v2
+        with:
+          path: .terraform
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
+
+      - name: Terraform Init (if cache missing)
+        if: steps.cache-terraform.outputs.cache-hit != 'true'
         run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
