@@ -42,3 +42,11 @@ resource "aws_s3_bucket_policy" "public_access" {
     aws_s3_bucket_public_access_block.public_access_block
   ]
 }
+
+resource "aws_s3_bucket_object" "index_object" {
+  bucket       = aws_s3_bucket.website_bucket.id
+  key          = "terra.html"
+  source       = "terra.html"      # Ensure this file is in your Terraform working directory
+  content_type = "text/html"
+  etag         = filemd5("terra.html")
+}
