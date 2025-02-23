@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "website_bucket" {
-  bucket = "your-static-website-bucket-2011"
+  bucket = "your-static-website-bucket-2001"
 }
 
 resource "aws_s3_bucket_public_access_block" "public_access_block" {
