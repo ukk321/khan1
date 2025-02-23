@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "website_bucket" {
-  bucket = "your-static-website-bucket-2000"
+  bucket = "your-static-website-bucket-2001"
 }
 
 resource "aws_s3_bucket_public_access_block" "public_access_block" {
@@ -27,12 +27,12 @@ resource "aws_s3_bucket_policy" "public_access" {
   bucket = aws_s3_bucket.website_bucket.id
 
   policy = jsonencode({
-    Version   = "2012-10-17"
+    Version   = "2012-10-17",
     Statement = [
       {
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
+        Effect    = "Allow",
+        Principal = "*",
+        Action    = "s3:GetObject",
         Resource  = "${aws_s3_bucket.website_bucket.arn}/*"
       }
     ]
@@ -46,7 +46,7 @@ resource "aws_s3_bucket_policy" "public_access" {
 resource "aws_s3_bucket_object" "index_object" {
   bucket       = aws_s3_bucket.website_bucket.id
   key          = "terra.html"
-  source       = "terra.html"      # Ensure this file is in your Terraform working directory
+  source       = "terra.html"      # Make sure this file exists in your repo root or update the path accordingly
   content_type = "text/html"
   etag         = filemd5("terra.html")
 }
