@@ -3,54 +3,80 @@ pipeline {
 
     environment {
         // AWS Credentials (from Jenkins credentials)
-        AWS_ACCESS_KEY_ID = credentials('aws-access-key')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key') // ID of the Access Key credential
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key') // ID of the Secret Key credential
 
         // AWS Region and EC2 details
-        AWS_REGION = 'us-east-1'
-        EC2_USER = 'ubuntu'
-        EC2_IP = '98.82.178.99'
-        DEPLOY_DIR = '/var/www/html'
+        AWS_REGION = 'us-east-1' // Your AWS Region
+        EC2_USER = 'ubuntu' // EC2 username
+        EC2_IP = '98.82.178.99' // EC2 IP address
+        DEPLOY_DIR = '/var/www/html' // Directory to deploy to on EC2
     }
 
     stages {
+        // Stage 1: Fetch Source Code
         stage('Fetch Source Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/ukk321/khan1.git'
             }
         }
-
+        
+        // Stage 2: Prepare Application
         stage('Prepare Application') {
             steps {
                 sh 'echo "Preparing application for deployment..."'
+                // Add build steps if needed, e.g.:
+                // sh 'npm install'
             }
         }
-
+        
+        // Stage 3: Quality Check
         stage('Quality Check') {
             steps {
                 sh 'echo "Running quality checks and tests..."'
+                // Add test steps if needed, e.g.:
+                // sh 'npm test'
             }
         }
-
+        
+        // Stage 4: Transfer to EC2
         stage('Deploy to EC2') {
             steps {
-                sshagent(['ec2-ssh-key']) {
+                // Use SSH Agent for secure key authentication
+                sshagent(['ec2-ssh-key']) { // Use the ID of your SSH credentials
                     script {
                         try {
                             sh '''
-                                tar --exclude='./deployment.tar.gz' -czf deployment.tar.gz .
+                                echo "Creating deployment package..."
+                                
+                                # Create deployment package safely, avoiding changed files issue
+                                tar --exclude='./deployment.tar.gz' --exclude='./.git' --exclude='./.jenkins' --exclude='./logs' --exclude='./node_modules' -czf deployment.tar.gz .
+
+                                echo "Copying package to EC2..."
                                 scp -o StrictHostKeyChecking=no deployment.tar.gz ${EC2_USER}@${EC2_IP}:~
-                                ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} "
-                                    set -e
-                                    echo 'Deploying application...'
+                                
+                                echo "Deploying on EC2..."
+                                ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} '
+                                    set -e  # Stop script on any error
+                                    
+                                    echo "Ensuring deployment directory exists..."
                                     sudo mkdir -p ${DEPLOY_DIR}
+                                    
+                                    echo "Extracting deployment package..."
                                     sudo tar -xzf ~/deployment.tar.gz -C ${DEPLOY_DIR} --strip-components=1
+                                    
+                                    echo "Setting proper permissions..."
                                     sudo chown -R ubuntu:www-data ${DEPLOY_DIR}
                                     sudo chmod -R 755 ${DEPLOY_DIR}
+                                    
+                                    echo "Restarting web server..."
                                     sudo systemctl restart apache2 || sudo systemctl restart nginx
+                                    
+                                    echo "Cleaning up..."
                                     rm ~/deployment.tar.gz
-                                    echo 'Deployment completed successfully'
-                                "
+                                    
+                                    echo "Deployment completed successfully!"
+                                '
                             '''
                         } catch (Exception e) {
                             echo "Deployment failed: ${e}"
@@ -61,12 +87,13 @@ pipeline {
                 }
             }
         }
-
+        
+        // Stage 5: Verify Deployment
         stage('Verify Deployment') {
             steps {
                 sh 'echo "Verifying deployment status..."'
                 sh '''
-                    if curl -Is http://${EC2_IP} | head -n 1 | grep -E "200|301|302"; then
+                    if curl -Is http://${EC2_IP} | grep -E "200|301|302"; then
                         echo "Deployment successful!"
                     else
                         echo "Deployment verification failed!" && exit 1
@@ -74,14 +101,15 @@ pipeline {
                 '''
             }
         }
-
+        
+        // Stage 6: Cleanup
         stage('Cleanup') {
             steps {
-                sh 'rm -f deployment.tar.gz'
+                sh 'rm -f deployment.tar.gz || true'
             }
         }
     }
-
+    
     post {
         success {
             echo '✅ GitHub to EC2 deployment pipeline executed successfully!'
