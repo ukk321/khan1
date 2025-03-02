@@ -9,7 +9,7 @@ pipeline {
         // AWS Region and EC2 details
         AWS_REGION = 'us-east-1' // Your AWS Region
         EC2_USER = 'ubuntu' // EC2 username
-        EC2_IP = '107.22.72.35' // EC2 IP address
+        EC2_IP = '54.162.237.13' // EC2 IP address
         DEPLOY_DIR = '/var/www/html' // Directory to deploy to on EC2
     }
 
