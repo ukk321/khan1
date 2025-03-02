@@ -14,9 +14,17 @@ pipeline {
     }
 
     stages {
-        stage('Fetch Source Code') {
+        stage('Fetch Specific File') {
             steps {
-                git branch: 'main', url: 'https://github.com/ukk321/khan1.git'
+                script {
+                    sh '''
+                        echo "Fetching jaber.html from repository..."
+                        rm -rf repo
+                        git clone https://github.com/ukk321/khan1.git repo
+                        cd repo
+                        cp jaber.html ../  # Copy only jaber.html
+                    '''
+                }
             }
         }
 
@@ -38,32 +46,19 @@ pipeline {
                     script {
                         try {
                             sh '''
-                                echo "Creating deployment package..."
-                                tar --exclude='./deployment.tar.gz' --exclude='./.git' --exclude='./.jenkins' --exclude='./logs' --exclude='./node_modules' -czf deployment.tar.gz .
-
-                                echo "Copying package to EC2..."
-                                scp -o StrictHostKeyChecking=no deployment.tar.gz ${EC2_USER}@${EC2_IP}:~
+                                echo "Copying jaber.html to EC2..."
+                                scp -o StrictHostKeyChecking=no jaber.html ${EC2_USER}@${EC2_IP}:${DEPLOY_DIR}/
                                 
                                 echo "Deploying on EC2..."
                                 ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} '
                                     set -e
                                     
-                                    DEPLOY_DIR="/var/www/html"  # ✅ Explicitly set DEPLOY_DIR
-                                    echo "Ensuring deployment directory exists..."
-                                    sudo mkdir -p "$DEPLOY_DIR"
-                                    
-                                    echo "Extracting deployment package..."
-                                    sudo tar -xzf ~/deployment.tar.gz -C "$DEPLOY_DIR" --strip-components=1
-                                    
-                                    echo "Setting proper permissions..."
-                                    sudo chown -R ubuntu:www-data "$DEPLOY_DIR"
-                                    sudo chmod -R 755 "$DEPLOY_DIR"
+                                    echo "Setting proper permissions for jaber.html..."
+                                    sudo chown ubuntu:www-data ${DEPLOY_DIR}/jaber.html
+                                    sudo chmod 644 ${DEPLOY_DIR}/jaber.html
                                     
                                     echo "Restarting web server..."
                                     sudo systemctl restart apache2 || sudo systemctl restart nginx
-                                    
-                                    echo "Cleaning up..."
-                                    rm ~/deployment.tar.gz
                                     
                                     echo "Deployment completed successfully!"
                                 '
@@ -81,7 +76,7 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                    if curl -Is http://${EC2_IP} | grep -E "200|301|302"; then
+                    if curl -Is http://${EC2_IP}/jaber.html | grep -E "200|301|302"; then
                         echo "Deployment successful!"
                     else
                         echo "Deployment verification failed!" && exit 1
@@ -92,7 +87,7 @@ pipeline {
 
         stage('Cleanup') {
             steps {
-                sh 'rm -f deployment.tar.gz || true'
+                sh 'rm -f jaber.html || true'
             }
         }
     }
