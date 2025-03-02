@@ -55,8 +55,8 @@ pipeline {
                                 
                                 # SSH into EC2 and deploy
                                 ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} '
-                                    # Create deploy directory if it doesn't exist
-                                    sudo mkdir -p ${DEPLOY_DIR}
+                                    # Clean up the deployment directory (optional)
+                                    sudo rm -rf ${DEPLOY_DIR}/*
                                     
                                     # Extract files to deployment directory
                                     sudo tar -xzf ~/deployment.tar.gz -C ${DEPLOY_DIR}
