@@ -9,7 +9,7 @@ pipeline {
         // AWS Region and EC2 details
         AWS_REGION = 'us-east-1' // Your AWS Region
         EC2_USER = 'ubuntu' // EC2 username
-        EC2_IP = '54.162.237.13' // EC2 IP address
+        EC2_IP = '98.82.178.99' // EC2 IP address
         DEPLOY_DIR = '/var/www/html' // Directory to deploy to on EC2
     }
 
@@ -25,8 +25,8 @@ pipeline {
         stage('Prepare Application') {
             steps {
                 sh 'echo "Preparing application for deployment..."'
-                // Add your build commands here (if needed)
-                // For example: sh 'npm install' or sh 'mvn package'
+                // Add build steps if needed, e.g.:
+                // sh 'npm install'
             }
         }
         
@@ -34,41 +34,45 @@ pipeline {
         stage('Quality Check') {
             steps {
                 sh 'echo "Running quality checks and tests..."'
-                // Add your test commands here (if needed)
-                // For example: sh 'npm test' or sh 'mvn test'
+                // Add test steps if needed, e.g.:
+                // sh 'npm test'
             }
         }
         
         // Stage 4: Transfer to EC2
         stage('Deploy to EC2') {
             steps {
-                // Use SSH Agent to handle the SSH key
+                // Use SSH Agent for secure key authentication
                 sshagent(['ec2-ssh-key']) { // Use the ID of your SSH credentials
                     script {
                         try {
                             sh '''
-                                # Create deployment package
-                                tar -czf deployment.tar.gz *
+                                # Create deployment package (excluding unwanted files)
+                                tar --exclude='./deployment.tar.gz' -czf deployment.tar.gz .
                                 
                                 # Copy to EC2 instance
                                 scp -o StrictHostKeyChecking=no deployment.tar.gz ${EC2_USER}@${EC2_IP}:~
                                 
                                 # SSH into EC2 and deploy
                                 ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_IP} '
-                                    # Clean up the deployment directory (optional)
-                                    sudo rm -rf ${DEPLOY_DIR}/*
+                                    set -e  # Stop script on any error
                                     
-                                    # Extract files to deployment directory
-                                    sudo tar -xzf ~/deployment.tar.gz -C ${DEPLOY_DIR}
+                                    echo "Deploying application..."
+                                    
+                                    # Ensure deployment directory exists
+                                    sudo mkdir -p ${DEPLOY_DIR}
+                                    
+                                    # Extract files safely
+                                    sudo tar -xzf ~/deployment.tar.gz -C ${DEPLOY_DIR} --strip-components=1
                                     
                                     # Set proper permissions
-                                    sudo chown -R ubuntu:ubuntu ${DEPLOY_DIR}
+                                    sudo chown -R ubuntu:www-data ${DEPLOY_DIR}
+                                    sudo chmod -R 755 ${DEPLOY_DIR}
                                     
-                                    # Run any post-deployment commands
-                                    # For example: restart web server
-                                    # sudo systemctl restart nginx
+                                    # Restart web server (if applicable)
+                                    sudo systemctl restart apache2 || sudo systemctl restart nginx
                                     
-                                    # Clean up
+                                    # Clean up temporary files
                                     rm ~/deployment.tar.gz
                                     
                                     echo "Deployment completed successfully"
@@ -88,11 +92,12 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh 'echo "Verifying deployment status..."'
-                // Add verification steps if needed
-                // For example: curl checks or health endpoint verification
                 sh '''
-                    curl -I http://${EC2_IP} || exit 1
-                    echo "Deployment verification complete"
+                    if curl -Is http://${EC2_IP} | head -n 1 | grep "200\|301\|302"; then
+                        echo "Deployment successful!"
+                    else
+                        echo "Deployment verification failed!" && exit 1
+                    fi
                 '''
             }
         }
@@ -107,10 +112,10 @@ pipeline {
     
     post {
         success {
-            echo 'GitHub to EC2 deployment pipeline executed successfully!'
+            echo '✅ GitHub to EC2 deployment pipeline executed successfully!'
         }
         failure {
-            echo 'GitHub to EC2 deployment pipeline failed!'
+            echo '❌ GitHub to EC2 deployment pipeline failed!'
         }
     }
 }
