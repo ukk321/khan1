@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = 'us-east-2'             // Your AWS region
-        S3_BUCKET = 'myec2testj'             // Your S3 bucket name
+        AWS_REGION = 'us-east-2'             
+        S3_BUCKET = 'myec2testj'             
     }
 
     stages {
