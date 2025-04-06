@@ -25,12 +25,12 @@ pipeline {
             }
         }
 
-        stage('Deploy to S3') {
+        stage('Deploy fortest.html to S3') {
             steps {
                 withAWS(credentials: 'aws-jenkins-creds', region: "${AWS_REGION}") {
                     sh '''
-                    echo "Deploying to S3..."
-                    aws s3 sync . s3://${S3_BUCKET} --acl public-read --exclude ".git/*" --exclude "Jenkinsfile" --delete
+                    echo "Deploying fortest.html to S3..."
+                    aws s3 cp fortest.html s3://${S3_BUCKET}/ --acl public-read
                     '''
                 }
             }
