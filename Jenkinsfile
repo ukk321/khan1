@@ -7,8 +7,8 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key') // ID of the Secret Key credential
 
         // AWS Region and S3 Bucket
-        AWS_REGION = 'us-east-1' // Your AWS Region
-        S3_BUCKET = 'jbuckei' // Your S3 bucket name
+        AWS_REGION = 'us-east-2' // Your AWS Region
+        S3_BUCKET = 'myec2testj' // Your S3 bucket name
     }
 
     stages {
