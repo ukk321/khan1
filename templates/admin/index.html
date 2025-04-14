@@ -1,0 +1,271 @@
+{% extends "admin/base_site.html" %}
+{% load dashboard_graph_tags %}
+
+{% block content %}
+<div class="container">
+    <h1 style="text-align: left;">Dashboard</h1>
+    <div class="row mb-4 align-items-end">
+        <div class="col-md-3">
+            <label for="days-select">Select Number of Days:</label>
+            <select id="days-select" class="form-control" onchange="showHideCustomDateRange(); updateCharts();">
+                <option value="7">Last 7 Days</option>
+                <option value="15">Last 15 Days</option>
+                <option value="30">Last Month</option>
+                <option value="180">Last 6 Months</option>
+                <option value="365">Last Year</option>
+                <option value="custom">Custom Date Range</option>
+            </select>
+        </div>
+        <div class="col-md-3" id="custom-date-range" style="display: none;">
+            <label for="start-date">Start Date:</label>
+            <input type="text" id="start-date" class="form-control" placeholder="Select Start Date">
+        </div>
+        <div class="col-md-3" id="custom-date-range-end" style="display: none;">
+            <label for="end-date">End Date:</label>
+            <input type="text" id="end-date" class="form-control" placeholder="Select End Date">
+        </div>
+        <div class="col-md-3" id="apply-button" style="display: none;">
+            <button class="btn btn-primary mt-4" onclick="updateCharts('custom')">Apply</button>
+        </div>
+    </div>
+    <div class="grid-container" id="grid-container">
+        <div class="grid-item draggable" id="pieChartContainer" draggable="true" ondragstart="drag(event)" ondragover="allowDrop(event)" ondrop="drop(event)" onmouseover="addFloatingEffect(this)" onmouseout="removeFloatingEffect(this)">
+            <div class="chart-content" id="pieChartContent">
+                {% comment %} {% dashboard_graph_booking_stats_tag "7" %} {% endcomment %}
+            </div>
+        </div>
+        <div class="grid-item draggable" id="barChartContainer" draggable="true" ondragstart="drag(event)" ondragover="allowDrop(event)" ondrop="drop(event)" onmouseover="addFloatingEffect(this)" onmouseout="removeFloatingEffect(this)">
+            <div class="chart-content" id="barChartContent">
+                {% comment %} {% dashboard_graph_monthly_bookings_tag 7 %} {% endcomment %}
+            </div>
+        </div>
+        <div class="grid-item draggable" id="contactQueriesTableContainer" draggable="true" ondragstart="drag(event)" ondragover="allowDrop(event)" ondrop="drop(event)" onmouseover="addFloatingEffect(this)" onmouseout="removeFloatingEffect(this)">
+            <div class="chart-content" id="contactQueriesTableContent">
+                {% comment %} {% dashboard_graph_contact_us_tag days=7 %} {% endcomment %}
+            </div>
+        </div>
+        <div class="grid-item draggable" id="bookingTableContainer" draggable="true" ondragstart="drag(event)" ondragover="allowDrop(event)" ondrop="drop(event)" onmouseover="addFloatingEffect(this)" onmouseout="removeFloatingEffect(this)">
+            <div class="chart-content" id="bookingTableContent">
+                {% comment %} {% dashboard_graph_booking_tag days=7 %} {% endcomment %}
+            </div>
+        </div>
+    </div>
+    <div class="grid-container-sunBurst" id="grid-container-sunburst">
+        <div class="grid-item-sunBURST" id="sunBurstChartContainer">
+            <div class="chart-content" id="sunBurstChartContent">
+        {% comment %} {% dashboard_graph_sub_service_tag "7" %} {% endcomment %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Flatpickr CSS and JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+<script>
+// Initialize Flatpickr
+document.addEventListener("DOMContentLoaded", function() {
+    flatpickr("#start-date", { dateFormat: "Y-m-d", });
+    flatpickr("#end-date", { dateFormat: "Y-m-d", });
+    loadOrder();
+});
+
+// Show/Hide Custom Date Range Inputs
+function showHideCustomDateRange() {
+    const customDateRange = document.getElementById("custom-date-range");
+    const customDateRangeEnd = document.getElementById("custom-date-range-end");
+    const applyButton = document.getElementById("apply-button");
+    const daysSelect = document.getElementById("days-select");
+    if (daysSelect.value === "custom") {
+        customDateRange.style.display = "block";
+        customDateRangeEnd.style.display = "block";
+        applyButton.style.display = "block";
+    } else {
+        customDateRange.style.display = "none";
+        customDateRangeEnd.style.display = "none";
+        applyButton.style.display = "none";
+    }
+}
+
+// Drag and drop functionality
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.dataTransfer.effectAllowed = "move";
+}
+
+function drop(ev) {
+    ev.preventDefault();
+    var data = ev.dataTransfer.getData("text");
+    var draggedElement = document.getElementById(data);
+    var dropTarget = ev.target;
+
+    // Ensure the drop target is a valid draggable container or grid item
+    while (!dropTarget.classList.contains('grid-item') && !dropTarget.classList.contains('grid-container') && dropTarget !== document.body) {
+        dropTarget = dropTarget.parentNode;
+    }
+
+    // Ensure the drop target is not the dragged element itself
+    if (draggedElement !== dropTarget) {
+        // Check if the drop target is a grid container
+        if (dropTarget.classList.contains('grid-container')) {
+            dropTarget.appendChild(draggedElement);
+        } else if (dropTarget.classList.contains('grid-item')) {
+            // Check if the drop target is a grid item
+            var draggedParent = draggedElement.parentNode;
+            var targetParent = dropTarget.parentNode;
+
+            // Ensure the dragged element and drop target are in the same grid container
+            if (draggedParent === targetParent) {
+                var siblings = Array.from(draggedParent.children);
+                var draggedIndex = siblings.indexOf(draggedElement);
+                var targetIndex = siblings.indexOf(dropTarget);
+
+                // Swap the elements based on their indices
+                if (draggedIndex < targetIndex) {
+                    targetParent.insertBefore(draggedElement, dropTarget.nextSibling);
+                } else {
+                    targetParent.insertBefore(draggedElement, dropTarget);
+                }
+            } else {
+                targetParent.insertBefore(draggedElement, dropTarget.nextSibling);
+            }
+        }
+        saveOrder();
+    }
+}
+
+function addFloatingEffect(element) {
+    element.classList.add("floating");
+}
+
+function removeFloatingEffect(element) {
+    element.classList.remove("floating");
+}
+
+function saveOrder() {
+    var gridItems = document.querySelectorAll('.grid-container .grid-item');
+    var order = [];
+    gridItems.forEach(function(item) {
+        order.push(item.id);
+    });
+    localStorage.setItem('dashboardOrder', JSON.stringify(order));
+}
+
+function loadOrder() {
+    var order = JSON.parse(localStorage.getItem('dashboardOrder'));
+    if (order) {
+        var gridContainer = document.querySelector('.grid-container');
+        order.forEach(function(id) {
+            var element = document.getElementById(id);
+            if (element) {
+                gridContainer.appendChild(element);
+            }
+        });
+    }
+    var gridContainer2 = document.querySelector('.grid-container-sunBurst');
+    var element = document.getElementById("sunBurstChartContainer");
+    gridContainer2.appendChild(element);
+}
+
+function updateCharts(rangeType) {
+    var daysSelect = document.getElementById('days-select').value;
+    var days;
+    var startDate = document.getElementById('start-date').value;
+    var endDate = document.getElementById('end-date').value;
+
+    var urlParams = new URLSearchParams();
+
+    if (rangeType === 'custom' && startDate && endDate) {
+        urlParams.append('start_date', startDate);
+        urlParams.append('end_date', endDate);
+    } else {
+        days = parseInt(daysSelect, 10);
+        urlParams.append('days', days);
+    }
+
+    fetch(`/get-booking-procedure-data/?${urlParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            updateBookingTable(data);
+        });
+
+     fetch(`/get-contact-us-procedure-data/?${urlParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            updateContactTable(data);
+        });
+
+    fetch(`/get-booking-stats-procedure-data/?${urlParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            updatePieChart(data);  // Add this line to update the pie chart
+        });
+
+
+    fetch(`/get-booking-count-procedure-data/?${urlParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            updateBarChart(data);  // Add this line to update the bar chart
+        });
+
+    fetch(`/get-booking-sunburst-procedure-data/?${urlParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            updateSunburst(data);
+        });
+}
+</script>
+
+<style>
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 20px; /* Space between grid items */
+    border: 1px solid #ccc; /* Border around the grid container */
+    padding: 10px; /* Padding inside the grid container */
+}
+
+.grid-item {
+    border: 1px solid #ccc; /* Border around each grid item */
+    padding: 10px; /* Padding inside each grid item */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.grid-container-sunBurst {
+    display: grid;
+    margin-top: 20px;
+    height: 700px;
+    grid-gap: 20px; /* Space between grid items */
+    border: 1px solid #ccc; /* Border around the grid container */
+    padding: 10px; /* Padding inside the grid container */
+}
+
+.grid-item-sunBURST {
+    border: 1px solid #ccc; /* Border around each grid item */
+    padding: 10px; /* Padding inside each grid item */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chart-content {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.floating {
+    transform: scale(1.02); /* Reduced floating effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#days-select, #start-date, #end-date {
+    width: 200px;
+}
+
+</style>
+{% endblock %}

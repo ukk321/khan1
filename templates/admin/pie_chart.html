@@ -1,0 +1,164 @@
+<div class="header" style="position: relative; text-align: center;">
+    Booking Statistics
+    <a href="/admin/booking/bookingmodel/" class="admin-link">Show All</a>
+</div>
+
+<div id="chart3" class="chart-container"></div>
+
+<!-- Load D3.js library -->
+<script src="https://d3js.org/d3.v6.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Function to create the Pie Chart
+    function createPieChart(elementId, data) {
+        const width = 440;
+        const height = 308;
+        const radius = Math.min(width, height) / 2;
+        const outerRadius = 100;
+
+        const totalValue = data.reduce((sum, d) => sum + d.value, 0);
+
+        if (totalValue === 0) {
+            d3.select(`#${elementId}`).append("div")
+                .attr("class", "no-data")
+                .style("text-align", "center")
+                .style("padding", "100px 0")
+                .text("No data on the given date");
+            return;
+        }
+
+        const color = d3.scaleOrdinal()
+            .domain(data.map(d => d.name))
+            .range(d3.schemePastel1);
+
+        const pie = d3.pie()
+            .sort(null)
+            .value(d => d.value);
+
+        const arc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(radius);
+
+        const arcLabel = d3.arc()
+            .innerRadius(radius * 0.8)
+            .outerRadius(radius * 0.8);
+
+        const arcs = pie(data);
+
+        const svg = d3.select(`#${elementId}`).append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("viewBox", [-width / 2, -height / 2, width, height])
+            .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif;");
+
+        svg.append("g")
+            .attr("stroke", "white")
+            .selectAll("path")
+            .data(arcs)
+            .join("path")
+            .attr("fill", d => color(d.data.name))
+            .attr("d", arc)
+            .append("title")
+            .text(d => `${d.data.name}: ${d.data.value.toLocaleString()}`);
+
+        svg.append("g")
+            .attr("text-anchor", "middle")
+            .selectAll("text")
+            .data(arcs)
+            .join("text")
+            .attr("transform", d => `translate(${arcLabel.centroid(d)})`)
+            .call(text => text.append("tspan")
+                .attr("y", "-0.4em")
+                .attr("font-weight", "bold")
+                .attr("class", "txt")
+                .text(d => d.data.name))
+            .attr("transform", function(d) {
+                d.outerRadius = outerRadius;
+                d.innerRadius = outerRadius / 2;
+                return "translate(" + arc.centroid(d) + ")rotate(" + angle(d) + ")";
+            })
+            .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
+                .attr("x", 0)
+                .attr("y", "0.7em")
+                .attr("fill-opacity", 0.7)
+                .text(d => d.data.value.toLocaleString()));
+
+        function angle(d) {
+            var a = (d.startAngle + d.endAngle) * 90 / Math.PI - 90;
+            return a > 90 ? a - 180 : a;
+        }
+    }
+
+    // Function to update the Pie Chart
+    window.updatePieChart = function(data) {
+        console.log("Updating Pie Chart with data:", data);
+        const data3 = [
+            { name: "Booking Amount", value: data[0].Total_Booking_Amount },
+            { name: "Advance Payments", value: data[0].Total_Advance_Payments },
+            { name: "Pending Amount", value: data[0].Total_Pending_Amount }
+        ];
+
+        d3.select("#chart3").selectAll("*").remove();  // Clear the existing chart
+        createPieChart('chart3', data3);
+    };
+
+    // Initial data passed from the backend
+    const initialData = [
+        { name: "Booking Amount", value: {{ booking_stats_data.0.Total_Booking_Amount | default:"0"}} },
+        { name: "Advance Payments", value: {{ booking_stats_data.0.Total_Advance_Payments | default:"0"}} },
+        { name: "Pending Amount", value: {{ booking_stats_data.0.Total_Pending_Amount | default:"0"}} }
+    ];
+
+    createPieChart('chart3', initialData);
+});
+</script>
+
+<style>
+.chart-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 5px auto;
+    position: relative; /* Ensure the container is positioned relative for absolute positioning of the button */
+}
+
+.chart-svg {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chart-svg.floating {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.admin-link {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white; /* White color for text */
+    font-weight: bold; /* Bold text */
+    text-decoration: none; /* Remove underline */
+}
+
+.admin-link:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+
+.header {
+    background-color: #337e86;
+    color: white;
+    font-size: 0.7em;
+    padding: 0.3rem;
+    text-align: center;
+    text-transform: uppercase;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.no-data {
+    font-size: 1.2em;
+    color: #337e86;
+}
+</style>

@@ -1,0 +1,597 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <div class="content-container">
+        <table id="services-table" class="tree-grid">
+            <thead>
+                <tr>
+                    <th class="service-header">{% trans "Collections" %}</th>
+                    <th class="service-header">{% trans "Heading" %}</th>
+                    <th class="service-header">{% trans "Price Range" %}</th>
+                    <th class="service-header">{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in page_obj %}
+                    <tr class="parent-row" data-id="{{ item.id }}">
+                        <td>
+                            <div class="name-column">
+                                <span class="caret"></span>
+                                <span class="indent">{{ item.name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ item.heading }}</td>
+                        <td>{{ item.price_range }}</td>
+                        <td>
+                            <div class="button-container">
+                                <a href="{% url 'admin:services_categorymodel_add' %}" class="btn btn-sm btn-success" title="{% trans "Add" %}">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                                <a href="{% url 'admin:services_servicemodel_change' item.id %}" class="btn btn-sm btn-primary" title="{% trans "Edit" %}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'admin:services_servicemodel_delete' item.id %}" class="btn btn-sm btn-danger" title="{% trans "Delete" %}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% for category in item.categories.all %}
+                    <tr class="child-row" data-service="{{ item.id }}" data-category="{{ category.id }}" style="display: none;">
+                        <td colspan="5">
+                            <table class="nested-table">
+                                <thead>
+                                    <tr>
+                                        <th class="category-header">{% trans "Category" %}</th>
+                                        <th class="category-header">{% trans "Collection" %}</th>
+                                        <th class="category-header">{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="name-column">
+                                                <span class="category-caret"></span>
+                                                <span class="indent">{{ category.name }}</span>
+                                            </div>
+                                        </td>
+                                        <td>{{ category.service }}</td>
+                                        <td>
+                                            <div class="button-container">
+                                                <a href="{% url 'admin:services_subservicesmodel_add' %}" class="btn btn-sm btn-success" title="{% trans "Add" %}">
+                                                    <i class="fas fa-plus"></i>
+                                                </a>
+                                                <a href="{% url 'admin:services_categorymodel_change' category.id %}" class="btn btn-sm btn-primary" title="{% trans "Edit" %}">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{% url 'admin:services_categorymodel_delete' category.id %}" class="btn btn-sm btn-danger" title="{% trans "Delete" %}">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% for subservice in category.category_service.all %}
+                                    {% if not subservice.subservice %}
+                                    <tr class="subservice-row" data-id="{{ subservice.id }}" data-category="{{ category.id }}" style="display: none;">
+                                        <td colspan="5">
+                                            <table class="nested-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="subservice-header">{% trans "Product" %}</th>
+                                                        <th class="subservice-header">{% trans "Heading" %}</th>
+                                                        <th class="subservice-header">{% trans "Price" %}</th>
+                                                        <th class="subservice-header">{% trans "Discount" %}</th>
+                                                        <th class="subservice-header">{% trans "Product" %}</th>
+                                                        <th class="subservice-header">{% trans "Actions" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="name-column">
+                                                                <span class="subservice-caret"></span>
+                                                                <span class="indent">{{ subservice.name }}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>{{ subservice.heading }}</td>
+                                                        <td>{{ subservice.price }}</td>
+                                                        <td>{{ subservice.discounted_price }}</td>
+                                                        <td>{{ subservice.subservice }}</td>
+                                                        <td>
+                                                            <a href="{% url 'admin:services_subservicesmodel_add' %}" class="btn btn-sm btn-success" title="{% trans "Add" %}">
+                                                                <i class="fas fa-plus"></i>
+                                                            </a>
+                                                            <a href="{% url 'admin:services_subservicesmodel_change' subservice.id %}" class="btn btn-sm btn-primary" title="{% trans "Edit" %}">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="{% url 'admin:services_subservicesmodel_delete' subservice.id %}" class="btn btn-sm btn-danger" title="{% trans "Delete" %}">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% for nested_subservice in subservice.subservice_category.all %}
+                                                    <tr class="nested-subservice-row" data-subservice="{{ subservice.id }}" data-subservicenested="{{ nested_subservice.id }}" style="display: none;">
+                                                        <td colspan="8">
+                                                            <table class="nested-table">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th class="nested-subservice-header">{% trans "Product" %}</th>
+                                                                        <th class="nested-subservice-header">{% trans "Heading" %}</th>
+                                                                        <th class="nested-subservice-header">{% trans "Price" %}</th>
+                                                                        <th class="nested-subservice-header">{% trans "Discount" %}</th>
+                                                                        <th class="nested-subservice-header">{% trans "Product" %}</th>
+                                                                        <th class="nested-subservice-header">{% trans "Actions" %}</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <div class="name-column">
+                                                                                <span class="nested-subservice-caret"></span>
+                                                                                <span class="indent">{{ nested_subservice.name }}</span>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>{{ nested_subservice.heading }}</td>
+                                                                        <td>{{ nested_subservice.price }}</td>
+                                                                        <td>{{ nested_subservice.discounted_price }}</td>
+                                                                        <td>{{ nested_subservice.subservice }}</td>
+                                                                        <td>
+                                                                            <a href="{% url 'admin:services_subservicesmodel_add' %}" class="btn btn-sm btn-success" title="{% trans "Add" %}">
+                                                                                <i class="fas fa-plus"></i>
+                                                                            </a>
+                                                                            <a href="{% url 'admin:services_subservicesmodel_change' nested_subservice.id %}" class="btn btn-sm btn-primary" title="{% trans "Edit" %}">
+                                                                                <i class="fas fa-edit"></i>
+                                                                            </a>
+                                                                            <a href="{% url 'admin:services_subservicesmodel_delete' nested_subservice.id %}" class="btn btn-sm btn-danger" title="{% trans "Delete" %}">
+                                                                                <i class="fas fa-trash-alt"></i>
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    {% for sub_nested_subservice in nested_subservice.subservice_category.all %}
+                                                                    <tr class="sub-nested-subservice-row" data-subservicenested="{{ nested_subservice.id }}" data-deepsubservicenested="{{ sub_nested_subservice.id }}" style="display: none;">
+                                                                        <td colspan="8">
+                                                                            <table class="nested-table">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th class="sub-nested-subservice-header">{% trans "Product" %}</th>
+                                                                                        <th class="sub-nested-subservice-header">{% trans "Heading" %}</th>
+                                                                                        <th class="sub-nested-subservice-header">{% trans "Price" %}</th>
+                                                                                        <th class="sub-nested-subservice-header">{% trans "Discount" %}</th>
+                                                                                        <th class="sub-nested-subservice-header">{% trans "Product" %}</th>
+                                                                                        <th class="sub-nested-subservice-header">{% trans "Actions" %}</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    <tr>
+                                                                                        <td>
+                                                                                            <div class="name-column">
+                                                                                                <span class="sub-nested-subservice-caret"></span>
+                                                                                                <span class="indent">{{ sub_nested_subservice.name }}</span>
+                                                                                            </div>
+                                                                                        </td>
+                                                                                        <td>{{ sub_nested_subservice.heading }}</td>
+                                                                                        <td>{{ sub_nested_subservice.price }}</td>
+                                                                                        <td>{{ sub_nested_subservice.discounted_price }}</td>
+                                                                                        <td>{{ sub_nested_subservice.subservice }}</td>
+                                                                                        <td>
+                                                                                            <a href="{% url 'admin:services_subservicesmodel_add' %}" class="btn btn-sm btn-success" title="{% trans "Add" %}">
+                                                                                                <i class="fas fa-plus"></i>
+                                                                                            </a>
+                                                                                            <a href="{% url 'admin:services_subservicesmodel_change' sub_nested_subservice.id %}" class="btn btn-sm btn-primary" title="{% trans "Edit" %}">
+                                                                                                <i class="fas fa-edit"></i>
+                                                                                            </a>
+                                                                                            <a href="{% url 'admin:services_subservicesmodel_delete' sub_nested_subservice.id %}" class="btn btn-sm btn-danger" title="{% trans "Delete" %}">
+                                                                                                <i class="fas fa-trash-alt"></i>
+                                                                                            </a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    {% for deeply_nested_subservice in sub_nested_subservice.subservice_category.all %}
+                                                                                    <tr class="deeply-nested-subservice-row" data-subservicenested2="{{ sub_nested_subservice.id }}" data-subsubservicenested="{{ deeply_nested_subservice.id }}" style="display: none;">
+                                                                                        <td colspan="8">
+                                                                                            <table class="nested-table">
+                                                                                                <thead>
+                                                                                                    <tr>
+                                                                                                        <th class="deeply-nested-subservice-header">{% trans "Product" %}</th>
+                                                                                                        <th class="deeply-nested-subservice-header">{% trans "Heading" %}</th>
+                                                                                                        <th class="deeply-nested-subservice-header">{% trans "Price" %}</th>
+                                                                                                        <th class="deeply-nested-subservice-header">{% trans "Discount" %}</th>
+                                                                                                        <th class="deeply-nested-subservice-header">{% trans "Product" %}</th>
+                                                                                                        <th class="deeply-nested-subservice-header">{% trans "Actions" %}</th>
+                                                                                                    </tr>
+                                                                                                </thead>
+                                                                                                <tbody>
+                                                                                                    <tr>
+                                                                                                        <td>
+                                                                                                            <div class="name-column">
+                                                                                                                <span class="deeply-nested-subservice-caret"></span>
+                                                                                                                <span class="indent">{{ deeply_nested_subservice.name }}</span>
+                                                                                                            </div>
+                                                                                                        </td>
+                                                                                                        <td>{{ deeply_nested_subservice.heading }}</td>
+                                                                                                        <td>{{ deeply_nested_subservice.price }}</td>
+                                                                                                        <td>{{ deeply_nested_subservice.discounted_price }}</td>
+                                                                                                        <td>{{ deeply_nested_subservice.subservice }}</td>
+                                                                                                        <td>
+                                                                                                            <a href="{% url 'admin:services_subservicesmodel_add' %}" class="btn btn-sm btn-success" title="{% trans "Add" %}">
+                                                                                                                <i class="fas fa-plus"></i>
+                                                                                                            </a>
+                                                                                                            <a href="{% url 'admin:services_subservicesmodel_change' deeply_nested_subservice.id %}" class="btn btn-sm btn-primary" title="{% trans "Edit" %}">
+                                                                                                                <i class="fas fa-edit"></i>
+                                                                                                            </a>
+                                                                                                            <a href="{% url 'admin:services_subservicesmodel_delete' deeply_nested_subservice.id %}" class="btn btn-sm btn-danger" title="{% trans "Delete" %}">
+                                                                                                                <i class="fas fa-trash-alt"></i>
+                                                                                                            </a>
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                </tbody>
+                                                                                            </table>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    {% endfor %}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </td>
+                                                                    </tr>
+                                                                    {% endfor %}
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-container">
+            {% if cl.paginator.num_pages > 1 %}
+            <ul class="pagination">
+                {% if cl.page_num > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?p={{ cl.page_num|add:"-1" }}">&laquo; {% trans "Previous" %}</a>
+                </li>
+                {% endif %}
+                {% for i in cl.paginator.page_range %}
+                <li class="page-item {% if cl.page_num == i %}active{% endif %}">
+                    <a class="page-link" href="?p={{ i }}">{{ i }}</a>
+                </li>
+                {% endfor %}
+                {% if cl.page_num < cl.paginator.num_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?p={{ cl.page_num|add:"1" }}">{% trans "Next" %} &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .tree-grid {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed; /* Fixed layout for the parent table */
+    }
+
+    .nested-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: auto; /* Default to auto layout for nested tables */
+    }
+
+    .tree-grid th, .tree-grid td, .nested-table th, .nested-table td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+        white-space: nowrap;
+        width: 25%;
+    }
+
+    .child-row {
+        background-color: #f9f9f9;
+    }
+
+    .caret, .category-caret, .subservice-caret, .nested-subservice-caret, .sub-nested-subservice-caret, .deeply-nested-subservice-caret {
+        cursor: pointer;
+        user-select: none;
+        margin-left: 10px;
+    }
+
+    .caret::before, .category-caret::before, .subservice-caret::before, .nested-subservice-caret::before, .sub-nested-subservice-caret::before, .deeply-nested-subservice-caret::before {
+        content: "\25B6";
+        color: black;
+        display: inline-block;
+        margin-right: 6px;
+        transition: transform 0.3s ease;
+    }
+
+    .caret-down::before, .category-caret-down::before, .subservice-caret-down::before, .nested-subservice-caret-down::before, .sub-nested-subservice-caret-down::before, .deeply-nested-subservice-caret-down::before {
+        transform: rotate(90deg);
+    }
+
+    .parent-row, .child-row, .subservice-row, .nested-subservice-row, .sub-nested-subservice-row, .deeply-nested-subservice-row {
+        height: 40px;
+    }
+
+    .name-column {
+        display: flex;
+        align-items: center;
+    }
+
+    .indent {
+        margin-left: 10px; /* Adjust the indentation as needed */
+    }
+
+    .btn {
+        margin-right: 4px; /* Adjust the right margin for spacing */
+        margin-left: 4px; /* Adjust the left margin for spacing */
+        padding: 5px;
+        font-size: 12px; /* Adjust font size as needed */
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        text-decoration: none;
+        border-radius: 3px;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        text-decoration: none;
+        border-radius: 3px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        text-decoration: none;
+        border-radius: 3px;
+    }
+
+    .btn-primary:hover, .btn-danger:hover, .btn-success:hover {
+        opacity: 0.8;
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .pagination {
+        display: flex;
+        list-style: none;
+        padding: 0;
+    }
+
+    .page-item {
+        margin: 0 5px;
+    }
+
+    .page-link {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        color: #007bff;
+        text-decoration: none;
+        border-radius: 3px;
+    }
+
+    .page-link:hover {
+        background-color: #f2f2f2;
+    }
+
+    .active .page-link {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+
+    /* Custom header colors */
+    .service-header {
+        background-color: #81c784;
+        color: white;
+    }
+
+    .category-header {
+        background-color: #64b5f6;
+        color: white;
+    }
+
+    .subservice-header {
+        background-color: #9575cd;
+        color: white;
+    }
+
+    .nested-subservice-header {
+        background-color: #9575cd;
+        color: white;
+    }
+
+    .sub-nested-subservice-header {
+        background-color: #9575cd;
+        color: white;
+    }
+
+    .deeply-nested-subservice-header {
+        background-color: #9575cd;
+        color: white;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Toggle categories within a service
+        document.querySelectorAll('.caret').forEach(function (caret) {
+            var parentRow = caret.closest('.parent-row');
+            var id = parentRow.dataset.id;
+            var categories = document.querySelectorAll('[data-service="' + id + '"]');
+            if (categories.length > 0) {
+                caret.addEventListener('click', function () {
+                    categories.forEach(function (category) {
+                        category.style.display = category.style.display === 'none' ? 'table-row' : 'none';
+                    });
+                    // Collapse sibling categories
+                    document.querySelectorAll('.caret').forEach(function (otherCaret) {
+                        if (otherCaret !== caret) {
+                            var otherParentRow = otherCaret.closest('.parent-row');
+                            var otherId = otherParentRow.dataset.id;
+                            var otherCategories = document.querySelectorAll('[data-service="' + otherId + '"]');
+                            otherCategories.forEach(function (otherCategory) {
+                                otherCategory.style.display = 'none';
+                            });
+                            otherCaret.classList.remove('caret-down');
+                        }
+                    });
+                    caret.classList.toggle('caret-down');
+                });
+            } else {
+                caret.style.display = 'none'; // Hide caret if no child categories found
+            }
+        });
+
+        // Toggle subservices within a category
+        document.querySelectorAll('.category-caret').forEach(function (categoryCaret) {
+            var childRow = categoryCaret.closest('.child-row');
+            var categoryId = childRow.dataset.category;
+            var subservices = document.querySelectorAll('[data-category="' + categoryId + '"].subservice-row');
+            if (subservices.length > 0) {
+                categoryCaret.addEventListener('click', function () {
+                    subservices.forEach(function (subservice) {
+                        subservice.style.display = subservice.style.display === 'none' ? 'table-row' : 'none';
+                    });
+                    // Collapse sibling subservices
+                    document.querySelectorAll('.category-caret').forEach(function (otherCategoryCaret) {
+                        if (otherCategoryCaret !== categoryCaret) {
+                            var otherChildRow = otherCategoryCaret.closest('.child-row');
+                            var otherCategoryId = otherChildRow.dataset.category;
+                            var otherSubservices = document.querySelectorAll('[data-category="' + otherCategoryId + '"].subservice-row');
+                            otherSubservices.forEach(function (otherSubservice) {
+                                otherSubservice.style.display = 'none';
+                            });
+                            otherCategoryCaret.classList.remove('category-caret-down');
+                        }
+                    });
+                    categoryCaret.classList.toggle('category-caret-down');
+                });
+            } else {
+                categoryCaret.style.display = 'none'; // Hide caret if no child subservices found
+            }
+        });
+
+        // Toggle nested subservices within a subservice
+        document.querySelectorAll('.subservice-caret').forEach(function (subserviceCaret) {
+            var subserviceRow = subserviceCaret.closest('.subservice-row');
+            var subserviceId = subserviceRow.dataset.id;
+            var nestedSubservices = document.querySelectorAll('[data-subservice="' + subserviceId + '"].nested-subservice-row');
+            if (nestedSubservices.length > 0) {
+                subserviceCaret.addEventListener('click', function () {
+                    nestedSubservices.forEach(function (nestedSubservice) {
+                        nestedSubservice.style.display = nestedSubservice.style.display === 'none' ? 'table-row' : 'none';
+                    });
+                    // Collapse sibling nested subservices
+                    document.querySelectorAll('.subservice-caret').forEach(function (otherSubserviceCaret) {
+                        if (otherSubserviceCaret !== subserviceCaret) {
+                            var otherSubserviceRow = otherSubserviceCaret.closest('.subservice-row');
+                            var otherSubserviceId = otherSubserviceRow.dataset.id;
+                            var otherNestedSubservices = document.querySelectorAll('[data-subservice="' + otherSubserviceId + '"].nested-subservice-row');
+                            otherNestedSubservices.forEach(function (otherNestedSubservice) {
+                                otherNestedSubservice.style.display = 'none';
+                            });
+                            otherSubserviceCaret.classList.remove('subservice-caret-down');
+                        }
+                    });
+                    subserviceCaret.classList.toggle('subservice-caret-down');
+                });
+            } else {
+                subserviceCaret.style.display = 'none'; // Hide caret if no child nested subservices found
+            }
+        });
+
+        // Toggle sub-nested subservices within a nested subservice
+        document.querySelectorAll('.nested-subservice-caret').forEach(function (nestedSubserviceCaret) {
+            var nestedSubserviceRow = nestedSubserviceCaret.closest('.nested-subservice-row');
+            var nestedSubserviceId = nestedSubserviceRow.dataset.subservicenested;
+            var subNestedSubservices = document.querySelectorAll('[data-subservicenested="' + nestedSubserviceId + '"].sub-nested-subservice-row');
+            if (subNestedSubservices.length > 0) {
+                nestedSubserviceCaret.addEventListener('click', function () {
+                    subNestedSubservices.forEach(function (subNestedSubservice) {
+                        subNestedSubservice.style.display = subNestedSubservice.style.display === 'none' ? 'table-row' : 'none';
+                    });
+                    // Collapse sibling sub-nested subservices
+                    document.querySelectorAll('.nested-subservice-caret').forEach(function (otherNestedSubserviceCaret) {
+                        if (otherNestedSubserviceCaret !== nestedSubserviceCaret) {
+                            var otherNestedSubserviceRow = otherNestedSubserviceCaret.closest('.nested-subservice-row');
+                            var otherNestedSubserviceId = otherNestedSubserviceRow.dataset.subservicenested;
+                            var otherSubNestedSubservices = document.querySelectorAll('[data-subservicenested="' + otherNestedSubserviceId + '"].sub-nested-subservice-row');
+                            otherSubNestedSubservices.forEach(function (otherSubNestedSubservice) {
+                                otherSubNestedSubservice.style.display = 'none';
+                            });
+                            otherNestedSubserviceCaret.classList.remove('nested-subservice-caret-down');
+                        }
+                    });
+                    nestedSubserviceCaret.classList.toggle('nested-subservice-caret-down');
+                });
+            } else {
+                nestedSubserviceCaret.style.display = 'none'; // Hide caret if no child sub-nested subservices found
+            }
+        });
+
+        // Toggle deeply-nested subservices within sub-nested subservices
+        document.querySelectorAll('.sub-nested-subservice-caret').forEach(function (subNestedSubserviceCaret) {
+            var subNestedSubserviceRow = subNestedSubserviceCaret.closest('.sub-nested-subservice-row');
+            var subNestedSubserviceId = subNestedSubserviceRow.dataset.deepsubservicenested;
+            var deeplyNestedSubservices = document.querySelectorAll('[data-subservicenested2="' + subNestedSubserviceId + '"].deeply-nested-subservice-row');
+            if (deeplyNestedSubservices.length > 0) {
+                subNestedSubserviceCaret.addEventListener('click', function () {
+                    deeplyNestedSubservices.forEach(function (deeplyNestedSubservice) {
+                        deeplyNestedSubservice.style.display = deeplyNestedSubservice.style.display === 'none' ? 'table-row' : 'none';
+                    });
+                    // Collapse sibling deeply nested subservices
+                    document.querySelectorAll('.sub-nested-subservice-caret').forEach(function (otherSubNestedSubserviceCaret) {
+                        if (otherSubNestedSubserviceCaret !== subNestedSubserviceCaret) {
+                            var otherSubNestedSubserviceRow = otherSubNestedSubserviceCaret.closest('.sub-nested-subservice-row');
+                            var otherSubNestedSubserviceId = otherSubNestedSubserviceRow.dataset.subservicenested;
+                            var otherDeeplyNestedSubservices = document.querySelectorAll('[data-subservicenested="' + otherSubNestedSubserviceId + '"].deeply-nested-subservice-row');
+                            otherDeeplyNestedSubservices.forEach(function (otherDeeplyNestedSubservice) {
+                                otherDeeplyNestedSubservice.style.display = 'none';
+                            });
+                            otherSubNestedSubserviceCaret.classList.remove('sub-nested-subservice-caret-down');
+                        }
+                    });
+                    subNestedSubserviceCaret.classList.toggle('sub-nested-subservice-caret-down');
+                });
+            } else {
+                subNestedSubserviceCaret.style.display = 'none'; // Hide caret if no child deeply nested subservices found
+            }
+        });
+    });
+</script>
+
+{% endblock %}

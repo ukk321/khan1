@@ -1,0 +1,42 @@
+{% extends 'admin/base_site.html' %}
+
+{% block content %}
+<h1 style="text-align: center;">Size Chart for {{ subservice.name }}</h1>
+
+<div style="overflow-x: auto;">
+    {% if sizes %}
+        {% comment %} Group sizes by section {% endcomment %}
+        {% regroup sizes by section as grouped_sizes %}
+        {% for group in grouped_sizes %}
+            <h2 style="text-align: center; margin-top: 20px;">{{ group.grouper }}</h2>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <thead style="background-color: #f2f2f2;">
+                    <tr>
+                        <th style="padding: 10px; border: 1px solid #ddd;">Attribute</th>
+                        {% for size in group.list %}
+                        <th style="padding: 10px; border: 1px solid #ddd;">{{ size.size }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attribute in group.list.0.attributes %}
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">{{ attribute.attribute_name }}</td>
+                        {% for size in group.list %}
+                            {% for attr in size.attributes %}
+                                {% if attr.attribute_name == attribute.attribute_name %}
+                                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">{{ attr.value_in_cm }}</td>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center;">No size data available for this product.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

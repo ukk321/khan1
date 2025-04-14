@@ -1,0 +1,119 @@
+<div class="header" style="position: relative; text-align: center;">
+    Bookings per Month
+    <a href="/admin/services/servicemodel/" class="admin-link">Show All</a>
+</div>
+
+<div id="chart-container" style="text-align: center;">
+    <canvas id="myBarChart" width="400" height="200"></canvas>
+    <p id="no-data-message" style="display: none; padding:100px; font-size: 1.2em; color: black;">No data available</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var bookingCounts = {{ monthly_booking_counts|safe }};
+    var ctx = document.getElementById('myBarChart').getContext('2d');
+    var noDataMessage = document.getElementById('no-data-message');
+    var myBarChart;
+
+    function hasData(data) {
+        return data.some(count => count !== 0);
+    }
+
+    function initializeChart(data) {
+        myBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'No. of Bookings',
+                    data: data,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart(data) {
+        if (myBarChart) {
+            myBarChart.data.datasets[0].data = data;
+            myBarChart.update();
+        } else {
+            initializeChart(data);
+        }
+    }
+
+    if (!hasData(bookingCounts)) {
+        noDataMessage.style.display = 'block';
+        ctx.canvas.style.display = 'none';
+    } else {
+        noDataMessage.style.display = 'none';
+        ctx.canvas.style.display = 'block';
+        initializeChart(bookingCounts);
+    }
+
+    // Function to update the Bar Chart
+    window.updateBarChart = function(data) {
+        console.log("Updating Bar Chart with data:", data);
+        if (hasData(data)) {
+            noDataMessage.style.display = 'none';
+            ctx.canvas.style.display = 'block';
+            updateChart(data);
+        } else {
+            noDataMessage.style.display = 'block';
+            ctx.canvas.style.display = 'none';
+        }
+    };
+});
+</script>
+
+<style>
+.admin-link {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white !important; /* White color for text */
+    font-weight: bold; /* Bold text */
+    text-decoration: none; /* Remove underline */
+}
+
+.admin-link:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+</style>

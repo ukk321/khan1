@@ -1,0 +1,403 @@
+<div class="table-users" id="contact-container" style="border: 1px solid #337e86; border-radius: 10px; box-shadow: 3px 3px 0 rgba(0,0,0,0.1); max-width: 600px; margin: 1em 0; overflow: hidden; text-align: left;">
+    <div class="header" style="background-color: #337e86; color: white; font-size: 0.7em; padding: 0.3rem; text-align: center; text-transform: uppercase; position: relative;">
+        Unasnwered Contact Queries (TAT Breached)
+        <a href="/admin/services/contactus/" class="admin-link">Show All</a>
+    </div>
+
+    <table id="contact-table" cellspacing="0" style="width: 100%; border-spacing: 0; table-layout: fixed;">
+        <thead>
+            <tr>
+                <th style="background-color: #d9eff1; color: #2b6f75; padding: 5px; font-weight: 300; text-align:left;">Name</th>
+                <th style="background-color: #d9eff1; color: #2b6f75; padding: 5px; font-weight: 300; text-align:left;">Message</th>
+                <th style="background-color: #d9eff1; color: #2b6f75; padding: 5px; font-weight: 300;text-align:left;">TAT</th>
+            </tr>
+        </thead>
+        <tbody id="contact-table-body">
+            {% if contact_us_data|length == 0%}
+            <tr>
+                <td colspan="3" style="text-align:center;padding:10px; font-size:1em; ">No Records Found</td>
+            </tr>
+            {% else %}
+            {% for query in contact_us_data %}
+            <tr class="{% if not query.is_replied %}unreplied{% else %}replied{% endif %}" style="border-bottom: 1px solid #ccc;">
+                <td style="text-align: left; vertical-align: middle; padding: 10px; font-size: 1em; color: black; position: relative; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                   <a href="{% url 'admin:services_contactus_change' query.id %}">{{ query.name }}</a>
+
+                </td>
+                <td class="message-cell" style="text-align: left; vertical-align: middle; padding: 10px; font-size: 1em; color: black; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">{{ query.message }}</td>
+                <td style="text-align: left; vertical-align: middle; padding: 10px; font-size: 1em; {% if not query.is_replied %} color: red; {% endif %}">{{ query.TAT }}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+    <div id="pagination-contact" style="text-align: center; padding: 10px; display: inline-flex;"></div>
+</div>
+
+<script>
+function updateContactTable(data) {
+    const tableBody = document.getElementById('contact-table-body');
+    tableBody.innerHTML = '';
+
+    if (data.length === 0) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 3; // Adjust the colspan to match the number of columns in your table
+        cell.style.textAlign = 'center';
+        cell.style.padding = '10px';
+        cell.style.fontSize = '1em';
+        cell.textContent = 'No records found';
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+
+    } else {
+        data.forEach(query => {
+            const row = document.createElement('tr');
+            row.className = query.is_replied ? 'replied' : 'unreplied';
+
+            const nameCell = document.createElement('td');
+            nameCell.style.textAlign = 'left';
+            nameCell.style.verticalAlign = 'middle';
+            nameCell.style.padding = '10px';
+            nameCell.style.fontSize = '1em';
+            nameCell.style.color = 'black';
+            nameCell.style.position = 'relative';
+            nameCell.style.whiteSpace = 'nowrap';
+            nameCell.style.overflow = 'hidden';
+            nameCell.style.textOverflow = 'ellipsis';
+            const nameLink = document.createElement('a');
+            nameLink.href = `/admin/services/contactus/${query.id}/change/`;
+            nameLink.textContent = query.name;
+            nameCell.appendChild(nameLink);
+
+            const messageCell = document.createElement('td');
+            messageCell.className = 'message-cell';
+            messageCell.style.textAlign = 'left';
+            messageCell.style.verticalAlign = 'middle';
+            messageCell.style.padding = '10px';
+            messageCell.style.fontSize = '1em';
+            messageCell.style.color = 'black';
+            messageCell.style.lineHeight = '1.2';
+            messageCell.style.whiteSpace = 'nowrap';
+            messageCell.style.overflow = 'hidden';
+            messageCell.style.textOverflow = 'ellipsis';
+            messageCell.style.maxWidth = '200px';
+            messageCell.textContent = query.message;
+
+            const tatCell = document.createElement('td');
+            tatCell.style.textAlign = 'left';
+            tatCell.style.verticalAlign = 'middle';
+            tatCell.style.padding = '10px';
+            tatCell.style.fontSize = '1em';
+            if (!query.is_replied) tatCell.style.color = 'red';
+            tatCell.textContent = query.TAT;
+
+            row.appendChild(nameCell);
+            row.appendChild(messageCell);
+            row.appendChild(tatCell);
+
+            tableBody.appendChild(row);
+        });
+    }
+
+    setupCPagination();
+}
+
+
+function setupCPagination() {
+    const rowsPerPage = 5;
+    const table = document.getElementById("contact-table");
+    const tbody = table.querySelector("tbody");
+    const rows = table.querySelectorAll("tbody tr");
+    const totalRows = rows.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    const pagination = document.getElementById("pagination-contact");
+
+    function showPage(page) {
+        // Hide all rows first
+        rows.forEach(row => row.style.display = "none");
+
+        // Show only the rows for the current page
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const currentRows = Array.from(rows).slice(start, end);
+        currentRows.forEach(row => row.style.display = "");
+
+        // Add placeholder rows if there are fewer than rowsPerPage rows
+        addPlaceholderRows(currentRows.length);
+    }
+
+    function addPlaceholderRows(visibleRowsCount) {
+        const placeholderCount = rowsPerPage - visibleRowsCount;
+        let placeholderRows = tbody.querySelectorAll('.placeholder-row');
+        placeholderRows.forEach(row => row.remove());
+
+        for (let i = 0; i < placeholderCount; i++) {
+            const placeholder = document.createElement("tr");
+            placeholder.classList.add("placeholder-row");
+            placeholder.innerHTML = `
+                <td style="padding: 10px; font-size: 1em; color: transparent;">Placeholder</td>
+                <td style="padding: 10px; font-size: 1em; color: transparent;">Placeholder</td>
+                <td style="padding: 10px; font-size: 1em; color: transparent;">Placeholder</td>
+            `;
+            tbody.appendChild(placeholder);
+        }
+    }
+
+    function setupPaginationLinks() {
+        pagination.innerHTML = "";
+        if (totalPages > 1) {
+            const prevButton = document.createElement("a");
+            prevButton.textContent = "Previous";
+            prevButton.href = "#";
+            prevButton.style.margin = "0 5px";
+            prevButton.classList.add("page-link");
+            prevButton.onclick = function(event) {
+                event.preventDefault();
+                const currentPage = getCurrentPage();
+                if (currentPage > 1) {
+                    showPage(currentPage - 1);
+                    setActivePage(currentPage - 1);
+                    updatePagination(currentPage - 1);
+                }
+            };
+            pagination.appendChild(prevButton);
+        }
+        for (let i = 1; i <= totalPages; i++) {
+            const a = document.createElement("a");
+            a.textContent = i;
+            a.href = "#";
+            a.style.margin = "0 5px";
+            a.classList.add("page-link");
+            a.onclick = function(event) {
+                event.preventDefault();
+                const page = parseInt(this.textContent);
+                showPage(page);
+                setActivePage(page);
+                updatePagination(page);
+            };
+            pagination.appendChild(a);
+        }
+        if (totalPages > 1) {
+            const nextButton = document.createElement("a");
+            nextButton.textContent = "Next";
+            nextButton.href = "#";
+            nextButton.style.margin = "0 5px";
+            nextButton.classList.add("page-link");
+            nextButton.onclick = function(event) {
+                event.preventDefault();
+                const currentPage = getCurrentPage();
+                if (currentPage < totalPages) {
+                    showPage(currentPage + 1);
+                    setActivePage(currentPage + 1);
+                    updatePagination(currentPage + 1);
+                }
+            };
+            pagination.appendChild(nextButton);
+        }
+        setActivePage(1);
+    }
+
+    function setActivePage(page) {
+        const links = pagination.getElementsByClassName("page-link");
+        for (let link of links) {
+            link.classList.remove("active");
+        }
+        const activeLink = Array.from(links).find(link => link.textContent == page);
+        if (activeLink) {
+            activeLink.classList.add("active");
+        }
+    }
+
+    function updatePagination(currentPage) {
+        const links = pagination.getElementsByClassName("page-link");
+        for (let link of links) {
+            link.classList.remove("hidden");
+            const pageNum = parseInt(link.textContent);
+            if (pageNum && (pageNum < currentPage - 1 || pageNum > currentPage + 1)) {
+                link.classList.add("hidden");
+            }
+        }
+    }
+
+    function getCurrentPage() {
+        const activeLink = pagination.querySelector(".page-link.active");
+        return activeLink ? parseInt(activeLink.textContent) : 1;
+    }
+
+    showPage(1);
+    setupPaginationLinks();
+}
+document.addEventListener("DOMContentLoaded", function() {
+    setupCPagination();
+});
+</script>
+
+<style>
+body {
+   background-color: #b3e0e4;
+   * { box-sizing: border-box; }
+}
+
+.page-link {
+    display: inline-block;
+    padding: 0.10em 0.50em; /* Reduced padding for smaller buttons */
+    margin: 0 0.25em;
+    color: #337e86;
+    text-decoration: none;
+    border: none;
+    font-size: 0.7em; /* Reduced font size for smaller text */
+}
+
+.page-link.active {
+    font-weight: bold;
+    color: white;
+    background-color: #337e86;
+    border-radius: 5px;
+}
+
+.page-link.hidden {
+    display: none;
+}
+
+#pagination-contact {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    border-radius: 5px;
+}
+
+.table-users tr {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ccc;
+     /* Fixed height for each row */
+}
+
+.admin-link {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white !important; /* White color for text */
+    font-weight: bold; /* Bold text */
+    text-decoration: none; /* Remove underline */
+}
+
+.admin-link:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+
+.placeholder-row td {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ccc;
+}
+
+.table-users td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table-users .message-cell {
+    max-width: 200px; /* Set maximum width for the message column */
+}
+
+.unreplied td:last-child {
+    color: red; /* Text color for TAT column in unreplied queries */
+}
+
+@media screen and (max-width: 700px) {
+   .table-users table, .table-users tr, .table-users td { display: block; }
+
+   .table-users td:first-child {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 100px;
+   }
+
+   .table-users td:not(:first-child) {
+      clear: both;
+      margin-left: 100px;
+      padding: 4px 20px 4px 90px;
+      position: relative;
+      text-align: left;
+   }
+
+   .table-users td:not(:first-child):before {
+      color: #b3e0e4;
+      content: '';
+      display: block;
+      left: 0;
+      position: absolute;
+   }
+
+   .table-users td:nth-child(2):before { content: 'Name:'; }
+   .table-users td:nth-child(3):before { content: 'Message:'; }
+   .table-users td:nth-child(4):before { content: 'TAT:'; }
+
+   .table-users tr {
+      padding: 10px 0;
+      position: relative;
+   }
+
+   .table-users tr:first-child { display: none; }
+}
+
+@media screen and (max-width: 500px) {
+   .table-users .header {
+      background-color: transparent;
+      color: #e6f6f7;
+      font-size: 1.5em; /* Reduced font size */
+      font-weight: 700;
+      padding: 0;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+   }
+
+   .table-users td:first-child {
+      background-color: #cbecee;
+      border-bottom: 1px solid #b3e0e4;
+      border-radius: 10px 10px 0 0;
+      position: relative;
+      top: 0;
+      transform: translateY(0);
+      width: 100%;
+   }
+
+   .table-users td:not(:first-child) {
+      margin: 0;
+      padding: 5px 1em;
+      width: 100%;
+   }
+
+   .table-users td:not(:first-child):before {
+      font-size: .8em;
+      padding-top: 0.3em;
+      position: relative;
+   }
+
+   .table-users td:last-child  {
+      padding-bottom: 1rem !important;
+   }
+
+   .table-users tr {
+      background-color: white !important;
+      border: 1px solid #b3e0e4;
+      border-radius: 10px;
+      box-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+      margin: 0.5rem 0;
+      padding: 0;
+   }
+
+   .table-users {
+      border: none;
+      box-shadow: none;
+      overflow: visible;
+   }
+}
+
+.unreplied {
+    color: black; /* Text color for unreplied queries */
+}
+</style>

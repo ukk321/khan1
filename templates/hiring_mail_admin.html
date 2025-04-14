@@ -1,0 +1,58 @@
+{% load i18n %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html>
+<head>
+    <title>{% translate "Lacigal" %}</title>
+    <style>
+        .right {
+            direction: rtl;
+        }
+
+        .left {
+            direction: ltr;
+        }
+    </style>
+</head>
+<body>
+<table class="{% if LANGUAGE_BIDI %}right{% else %}left{% endif %}" border="0" cellpadding="0" cellspacing="0"
+       style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: #f6f6f6;">
+    <tr>
+        <td style="font-family: 'Open Sans', sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>
+        <td style="font-family: 'Open Sans', sans-serif; font-size: 14px; vertical-align: top; display: block; Margin: 0 auto; max-width: 580px; padding: 10px; width: 580px;">
+            <div style="box-sizing: border-box; display: block; Margin: 0 auto; max-width: 580px; padding: 10px;">
+                <table style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background: #ffffff; border-radius: 3px;">
+                    <!-- HEADER-->
+                    <tr>
+                        <td style="font-family: 'Open Sans', sans-serif;font-size: 14px;vertical-align: top;box-sizing: border-box;padding: 20px;padding-bottom: 0;text-align: center;">
+                            <a href=""><img src="https://e-commerce-assets.s3.amazonaws.com/kafoor.png"
+                                            style="max-width: 160px;"/></a>
+                        </td>
+                    </tr><!-- START MAIN CONTENT AREA-->
+                    <tr>
+                        <td style="font-family: 'Open Sans', sans-serif; font-size: 14px; vertical-align: top; box-sizing: border-box; padding: 20px;">
+                            <table border="0" cellpadding="0" cellspacing="0"
+                                   style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;">
+                                <tr>
+                                    <td style="font-family: 'Open Sans', sans-serif; font-size: 14px; vertical-align: top;">
+                                        <p style="font-family: 'Open Sans', sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px; color: #333333;"> </p>
+                                        <p style="font-family: 'Open Sans', sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px; color: #333333;">
+                                            {% blocktranslate %}LACIGAL: {{message}}
+                                            {% endblocktranslate %}
+                                        </p>
+                                        <br>
+                                        <p style="font-family: 'Open Sans', sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 5px; color: #333333;">{% translate "Best regards," %}</p>
+                                        <p style="font-family: 'Open Sans', sans-serif; font-size: 14px; font-weight: normal; margin: 0; color: #333333;">{% translate "Team Lacigal" %}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr><!-- END MAIN CONTENT AREA-->
+                </table>
+                <!-- END CENTERED WHITE CONTAINER-->
+            </div>
+        </td>
+        <td style="font-family: 'Open Sans', sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>
+    </tr>
+</table>
+</body>
+</html>

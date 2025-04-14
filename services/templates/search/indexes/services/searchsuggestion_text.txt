@@ -1,0 +1,2 @@
+{{object.query}}
+{{object.popularity}}

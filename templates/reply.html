@@ -1,0 +1,64 @@
+<!-- templates/admin/reply_to_contact.html -->
+{% extends "admin/base_site.html" %}
+{% block content %}
+<style>
+    .textarea-container {
+        width: 100%;
+    }
+    textarea {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .previous-replies-container {
+        width: 100%;  /* Set width to 100% */
+    }
+    .previous-replies {
+        margin-top: 20px;
+    }
+    .reply {
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 100%; /* Set width to 100% */
+    }
+    .reply-message {
+        font-size: 16px;
+        line-height: 1.4;
+        margin-bottom: 10px;
+    }
+    .reply-timestamp {
+        font-size: 14px;
+        color: #666;
+        text-align: right; /* Align to the right */
+        font-style: italic; /* Italicize timestamp */
+    }
+</style>
+<div class="submit-row textarea-container">
+    <h1>Reply to Message</h1>
+    <form method="post">
+        {% csrf_token %}
+        <p><strong>Name:</strong> {{ contact.name }}</p>
+        <p><strong>Email:</strong> {{ contact.email }}</p>
+        <p><strong>Message:</strong> {{ contact.message }}</p>
+
+        <textarea name="reply_message" rows="5" style="width: 100%;" required></textarea>
+        <br>
+        <input type="submit" value="Save and Send Reply">
+    </form>
+</div>
+{% if previous_replies %}
+<div class="previous-replies-container"> <!-- Container for previous replies -->
+    <h2>Previous Replies:</h2>
+    {% for reply in previous_replies reversed %}
+    <div class="reply">
+        <p class="reply-message">{{ reply.message }}</p>
+        <p class="reply-timestamp"><em>Sent on:</em> {{ reply.timestamp }}</p> <!-- Italicize timestamp -->
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
